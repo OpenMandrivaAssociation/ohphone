@@ -16,7 +16,6 @@ Group:		Networking/Other
 URL:		http://openh323.sourceforge.net/
 Source0:	%{name}-%{o_ver}-%{snap}-src.tar.bz2
 Patch0:		ohphone-1.2.11-openh323path.patch
-Patch2:		ohphone-1.13.5-lib64.patch
 Patch3:		ohphone-1.4.5-psdl.patch
 BuildRequires:	openh323-devel >= %openh323_version pwlib-devel >= %pwlib_version libxext-static-devel libx11-static-devel x11-proto-devel
 BuildConflicts:	svgalib-devel
@@ -34,10 +33,13 @@ H.323 endpoint application.
 
 %setup -q -n %{name}
 %patch0 -p1 -b .openh323path
-%patch2 -p1 -b .lib64
 %patch3 -p1 -b .psdl
 
 %build
+
+# Fix X location, avoid patch
+perl -pi -e 's,/usr/X11R6/include/,%_includedir,g' Makefile
+perl -pi -e 's,/usr/X11R6/lib/,%_libdir,g' Makefile
 
 export CFLAGS="%{optflags} -DLDAP_DEPRECATED"
 export CXXFLAGS="%{optflags} -DLDAP_DEPRECATED"
