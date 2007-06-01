@@ -1,7 +1,7 @@
 %define	name	ohphone
 %define	version	1.4.5
 %define	snap	20050322
-%define	release	0.%{snap}.5mdk
+%define	release	%mkrel 0.%{snap}.6
 
 %{expand:%%define o_ver %(echo v%{version}| sed "s#\.#_#g")}
 %define openh323_version 1.15.3
@@ -15,10 +15,10 @@ License:	MPL
 Group:		Networking/Other
 URL:		http://openh323.sourceforge.net/
 Source0:	%{name}-%{o_ver}-%{snap}-src.tar.bz2
-Patch0:		ohphone-1.2.11-openh323path.patch.bz2
-Patch2:		ohphone-1.13.5-lib64.patch.bz2
-BuildRequires:	openh323-devel >= %openh323_version pwlib-devel >= %pwlib_version XFree86-static-devel
-Conflicts:	vpb-devel
+Patch0:		ohphone-1.2.11-openh323path.patch
+Patch2:		ohphone-1.13.5-lib64.patch
+Patch3:		ohphone-1.4.5-psdl.patch
+BuildRequires:	openh323-devel >= %openh323_version pwlib-devel >= %pwlib_version libxext-static-devel libx11-static-devel x11-proto-devel
 BuildConflicts:	svgalib-devel
 Epoch:		1
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
@@ -35,6 +35,7 @@ H.323 endpoint application.
 %setup -q -n %{name}
 %patch0 -p1 -b .openh323path
 %patch2 -p1 -b .lib64
+%patch3 -p1 -b .psdl
 
 %build
 
