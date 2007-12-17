@@ -20,7 +20,6 @@ Patch3:		ohphone-1.4.5-psdl.patch
 BuildRequires:	openh323-devel >= %openh323_version pwlib-devel >= %pwlib_version libxext-static-devel libx11-static-devel x11-proto-devel
 BuildConflicts:	svgalib-devel
 Epoch:		1
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 %description 
 ohphone is a command line application that can be used to listen for
