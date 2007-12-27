@@ -52,7 +52,6 @@ export CXXFLAGS="%{optflags} -DLDAP_DEPRECATED"
     PREFIX=%{_prefix} \
     PWLIB_BUILD=1 \
     OH323_LIBDIR=%{_libdir} \
-    NO_H323_VIDEO=1 \
     optshared
 
 %install
