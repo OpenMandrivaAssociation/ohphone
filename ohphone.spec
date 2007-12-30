@@ -3,7 +3,7 @@
 Summary:	Initiate, or receive, a H.323 IP telephony call
 Name:		ohphone
 Version:	1.4.6
-Release:	%mkrel 0.%{snap}.1
+Release:	%mkrel 0.%{snap}.2
 License:	MPL
 Group:		Networking/Other
 URL:		http://openh323.sourceforge.net/
