@@ -1,25 +1,23 @@
-%define	snap	20071226
+%define	name	ohphone
+%define	version	1.4.5
+%define	snap	20050322
+%define	release	%mkrel 0.%{snap}.8
+
+%{expand:%%define o_ver %(echo v%{version}| sed "s#\.#_#g")}
+%define openh323_version 1.15.3
+%define pwlib_version 1.8.4
 
 Summary:	Initiate, or receive, a H.323 IP telephony call
-Name:		ohphone
-Version:	1.4.6
-Release:	%mkrel 0.%{snap}.2
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
 License:	MPL
 Group:		Networking/Other
 URL:		http://openh323.sourceforge.net/
-Source0:	%{name}-%{snap}.tar.lzma
+Source0:	%{name}-%{o_ver}-%{snap}-src.tar.bz2
 Patch0:		ohphone-1.2.11-openh323path.patch
-# Define NO_H323_VIDEO so it doesn't try to build video code, which
-# uses codecs openh323 / h323plus haven't supported for a while
-Patch1:		ohphone-1.4.6-novideo.patch
-# The variable this code tries to use doesn't exist in h323plus /
-# pwlib any more, so disable it
-Patch2:		ohphone-1.4.6-missingvar.patch
-BuildRequires:	openh323-devel
-BuildRequires:	pwlib-devel
-BuildRequires:	libxext-static-devel
-BuildRequires:	libx11-static-devel
-BuildRequires:	x11-proto-devel
+Patch3:		ohphone-1.4.5-psdl.patch
+BuildRequires:	openh323-devel >= %openh323_version pwlib-devel >= %pwlib_version libxext-static-devel libx11-static-devel x11-proto-devel
 BuildConflicts:	svgalib-devel
 Epoch:		1
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
@@ -32,15 +30,16 @@ http://www.openh323.org) it has developed into a fully functional
 H.323 endpoint application.
 
 %prep
+
 %setup -q -n %{name}
 %patch0 -p1 -b .openh323path
-%patch1 -p1 -b .novideo
-%patch2 -p1 -b .missingvar
+%patch3 -p1 -b .psdl
 
 %build
+
 # Fix X location, avoid patch
-perl -pi -e 's,/usr/X11R6/include/,%{_includedir},g' Makefile
-perl -pi -e 's,/usr/X11R6/lib/,%{_libdir},g' Makefile
+perl -pi -e 's,/usr/X11R6/include/,%_includedir,g' Makefile
+perl -pi -e 's,/usr/X11R6/lib/,%_libdir,g' Makefile
 
 export CFLAGS="%{optflags} -DLDAP_DEPRECATED"
 export CXXFLAGS="%{optflags} -DLDAP_DEPRECATED"
