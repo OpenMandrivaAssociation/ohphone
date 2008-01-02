@@ -25,9 +25,8 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 %description 
 ohphone is a command line application that can be used to listen for
 incoming H.323 calls, or to initiate a call to a remote host. Although
-originally intended as a test harneess for the OpenH323 project (see
-http://www.openh323.org) it has developed into a fully functional
-H.323 endpoint application.
+originally intended as a test harneess for the OpenH323 project 
+it has developed into a fully functional H.323 endpoint application.
 
 %prep
 
