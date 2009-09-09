@@ -1,7 +1,7 @@
 %define	name	ohphone
 %define	version	1.4.5
 %define	snap	20050322
-%define	release	%mkrel 0.%{snap}.8
+%define	release	%mkrel 0.%{snap}.9
 
 %{expand:%%define o_ver %(echo v%{version}| sed "s#\.#_#g")}
 %define openh323_version 1.15.3
