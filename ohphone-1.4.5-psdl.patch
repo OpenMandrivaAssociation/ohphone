@@ -1,0 +1,184 @@
+--- ohphone/main.h	2006/06/21 06:17:11	1.106
++++ ohphone/main.h	2006/08/14 12:01:23	1.107
+@@ -392,10 +395,6 @@
+ #define HAS_LIDDEVICE
+ #endif
+ 
+-#if P_SDL
+-class PSDLDisplayThread;
+-#endif
+-
+ #if defined(__BEOS__) && !defined(P_SDL)
+ #ifndef _APPLICATION_H
+ #include <Application.h>
+@@ -600,10 +599,6 @@
+     BOOL isXJack;
+ #endif
+ 
+-#if P_SDL
+-    PSDLDisplayThread *sdlThread;
+-    PMutex           sdlThreadLock;
+-#endif
+     int channelsOpenLimit;
+ 
+     BOOL behind_masq;
+--- ohphone/main.cxx	2005/01/11 07:56:45	1.343
++++ ohphone/main.cxx	2005/08/12 11:27:21	1.344
+@@ -531,7 +534,7 @@
+             "  --videoformat type      : Set capture video format\n"
+             "                             can be auto (default) pal or ntsc\n"
+             "  --videocolorfmt format  : Set the preferred capture device color format\n"
+-            "                             can be RGB24, RGB24F, RGB32, ...\n"
++            "                             can be RGB24, RGB32, YUV420P, ...\n"
+             "  --videoinput num        : Select capture video input (default is 0)\n"
+             "  --videotxquality n      : Select sent video quality,(def 9). 1(best)<=n<=31\n"
+             "  --videotxminquality n   : Select video quality lower limit,(def 1). 1(best)<=n<=31\n"
+@@ -551,7 +554,6 @@
+ #endif
+ #ifdef P_SDL
+             "                          :      sdl      Use Simple DirectMedia Library\n"
+-            " --videopip               : Local video is displayed in adjacent smaller window\n"
+ #endif
+ #ifdef HAS_X11
+             "                          :      x11       automatically pick best X11 mode\n"
+@@ -698,8 +700,6 @@
+       endpoint->TestVideoGrabber(args);
+   } //initialised OK
+ 
+-  endpoint->WaitForSdlTermination();
+-
+   delete endpoint;
+ 
+   if (verbose >= 3)
+@@ -745,9 +745,6 @@
+ 
+   localVideoChannel = NULL;
+ 
+-  if (!InitialiseSdl(args))
+-    return FALSE;
+-
+   // get local username
+   if (args.HasOption('u')) {
+     PStringArray aliases = args.GetOptionString('u').Lines();
+@@ -1625,40 +1622,46 @@
+   PStringList driverNames = PSoundChannel::GetDriverNames();
+ 
+   PString driverName = args.GetOptionString(driverOptName);
++  if (driverNames.IsEmpty()) {
++    cout << "No sound drivers available!" << endl;
++    return FALSE;
++  }
++
+   if (driverName.IsEmpty()) 
+     driverName = args.GetOptionString("sound-driver");
+-  if (driverName.IsEmpty()) {
+-    if (driverNames.IsEmpty())
+-      return FALSE;
+-    driverName = driverNames[0];
+-  }
+-  else if (driverNames.GetStringsIndex(driverName) == P_MAX_INDEX) {
++
++  if (!driverName.IsEmpty() && driverNames.GetStringsIndex(driverName) == P_MAX_INDEX) {
+     cout << "Sound driver must be one of\n"
+          << setfill('\n') << driverNames << setfill(' ') 
+          << endl;
+-    return false;
++    return FALSE;
+   }
+ 
+-  if (dir == PSoundChannel::Player)
+-    SetSoundChannelPlayDriver(driverName);
+-  else
+-    SetSoundChannelRecordDriver(driverName);
++  PStringList deviceNames = driverName.IsEmpty() ? PSoundChannel::GetDeviceNames(dir)
++                                                 : PSoundChannel::GetDriversDeviceNames(driverName, dir);
++  if (deviceNames.IsEmpty()) {
++    cout << "No sound devices available!" << endl;
++    return FALSE;
++  }
++
++  PString deviceName = args.GetOptionString(deviceOptName);
++  if (deviceName.IsEmpty())
++    deviceName = deviceNames[0];
+ 
+-  PString dev = args.GetOptionString(deviceOptName);
+-  if (dev.IsEmpty())
+-    dev = PSoundChannel::GetDeviceNames(dir)[0];
++  if (!driverName.IsEmpty())
++    driverName += PDevicePluginServiceDescriptor::SeparatorChar;
+ 
+   if (dir == PSoundChannel::Player) {
+-    if (SetSoundChannelPlayDevice(dev))
++    if (SetSoundChannelPlayDevice(driverName+deviceName))
+       return TRUE;
+   }
+   else {
+-    if (SetSoundChannelRecordDevice(dev))
++    if (SetSoundChannelRecordDevice(driverName+deviceName))
+       return TRUE;
+   }
+ 
+   cout << "Argument to " << deviceOptName << " must be one of\n"
+-       << setfill('\n') << PSoundChannel::GetDeviceNames(dir) << setfill(' ') << endl;
++       << setfill('\n') << deviceNames << setfill(' ') << endl;
+ 
+   return FALSE;
+ }
+@@ -2069,7 +2072,7 @@
+ #ifdef P_SDL
+      // Dump received video to SDL 
+     if (videoReceiveDevice *= "sdl") 
+-      display = new PSDLVideoDevice(nameStr, isEncoding, sdlThread);
++      display = new PSDLVideoDevice();
+ #endif
+ 
+ #ifdef HAS_X11
+@@ -3300,47 +3303,6 @@
+ #endif
+ }
+ 
+-void MyH323EndPoint::WaitForSdlTermination()
+-{
+-#ifdef P_SDL
+-  PWaitAndSignal m(sdlThreadLock);
+-
+-  if (sdlThread != NULL) {
+-    sdlThread->Terminate();
+-    sdlThread->WaitForTermination();
+-    delete sdlThread;
+-  }
+-#endif
+-}
+-
+-BOOL MyH323EndPoint::InitialiseSdl(PConfigArgs & args)
+-{
+-#ifdef P_SDL
+-  PWaitAndSignal mutex(sdlThreadLock);
+-  sdlThread = NULL;
+-#endif
+-  PString videoDisplayDevice;
+-
+-  if (args.HasOption("videoreceive"))
+-    videoDisplayDevice = args.GetOptionString("videoreceive");
+-  if (args.HasOption("h261"))
+-    videoDisplayDevice = args.GetOptionString("h261");
+-  
+-  if (videoDisplayDevice *= "sdl") {                        
+-#ifdef  P_SDL
+-    sdlThread = new PSDLDisplayThread(args.HasOption("videopip"));
+-    PTRACE(3, "SDL display thread has been created ");
+-#else
+-    cout << "Warning --videoreceive device is SDL, but SDL is not installed" << endl
+-	 << "       Install/Enable the SDL libraries, and then recompile " << endl
+-	 << "       pwlib/openh323 and ohphone." << endl;
+-    return FALSE;
+-#endif  
+-  }
+-
+-  return TRUE;
+-}
+-  
+ void MyH323EndPoint::TestVideoGrabber(PConfigArgs & args)
+ {
+   double lossRate = 0;
+

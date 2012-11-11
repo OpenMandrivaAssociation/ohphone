@@ -1,0 +1,11 @@
+--- ohphone-1.2.11/Makefile.openh323path	2002-11-28 00:08:12.000000000 +0100
++++ ohphone-1.2.11/Makefile	2002-11-28 00:08:53.000000000 +0100
+@@ -144,7 +144,7 @@ ifndef OPENH323DIR
+ OPENH323DIR=$(HOME)/openh323
+ endif
+ 
+-include $(OPENH323DIR)/openh323u.mak
++include $(OPENH323DIR)/share/openh323/openh323u.mak
+ 
+ #
+ # only include svgalib support if available on this sytem
