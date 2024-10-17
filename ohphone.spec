@@ -13,7 +13,7 @@ Version:	%{version}
 Release:	%{release}
 License:	MPL
 Group:		Networking/Other
-URL:		http://openh323.sourceforge.net/
+URL:		https://openh323.sourceforge.net/
 Source0:	%{name}-%{o_ver}-%{snap}-src.tar.bz2
 Patch0:		ohphone-1.2.11-openh323path.patch
 Patch3:		ohphone-1.4.5-psdl.patch
