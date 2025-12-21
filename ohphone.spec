@@ -17,6 +17,7 @@ URL:		https://openh323.sourceforge.net/
 Source0:	%{name}-%{o_ver}-%{snap}-src.tar.bz2
 Patch0:		ohphone-1.2.11-openh323path.patch
 Patch3:		ohphone-1.4.5-psdl.patch
+BuildRequires:	make
 BuildRequires:	openh323-devel >= %openh323_version pwlib-devel >= %pwlib_version libxext-static-devel libx11-static-devel x11-proto-devel
 BuildConflicts:	svgalib-devel
 Epoch:		1
